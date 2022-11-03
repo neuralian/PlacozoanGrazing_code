@@ -906,8 +906,6 @@ function draw(trichoplax::Trichoplax, color=:black, linewidth = .25)
                trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],2],
                 color = color, linewidth=linewidth, alpha = 0.5)
     end
-   # display(scene)
-    #[handle[i] = scene[end-i+1] for i in 1:n]
     return handle
 end
 
@@ -924,12 +922,12 @@ function xyzArray2Points(xyz)
 end
 
 
-function redraw(trichoplax::Trichoplax, handle)
+function redraw(trichoplax::Trichoplax, cell_handle)
     # update cell vertices in plot
     # using handle returned by draw
 
-    for i in 1:length(handle)
-        handle[i][1][] =
+    for i in 1:length(cell_handle) # for each cell
+        cell_handle[i][1][] =
         xyArray2Points(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],:])
     end
 end

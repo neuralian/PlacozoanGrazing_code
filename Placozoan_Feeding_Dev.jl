@@ -41,7 +41,7 @@ bactrect = FRect(20,20, 30, 30)
 bacteria = growbacteria(nbacteria, bactrect)
 
 # draw trichoplax cells
-cells_handle = draw(trichoplax, RGB(.25, .25, .25), 1)
+cell_handle = draw(trichoplax, RGB(.25, .25, .25), 1)
 
 # colour the cells
 ch = potentialmap(trichoplax)
@@ -52,13 +52,13 @@ restvolume = copy(trichoplax.state.volume)
 i0 = 4
 i1 = vcat(i0, trichoplax.anatomy.neighbourcell[i0,:])
 
-# record(scene, "trichoplaxdev.mp4", 1:100) do tick
-for tick in 1:25
+record(fig, "trichoplaxdev.mp4", 1:100) do tick
+#for tick in 1:25
     global trichoplax
     global scene
     if tick < 50
         which_bacteriahere = bacteriahere(bacteria, trichoplax)
-        for j in 1:trichoplax.anatomy.stomach
+        for j in 1:trichoplax.anatomy.nstomach
             for k in 1:length(which_bacteriahere[j])
                 trichoplax.state.potential[j] = trichoplax.state.potential[j] -
                         1.0/(bacteria.deadticks[which_bacteriahere[j][k]] .+ 1)
@@ -77,11 +77,11 @@ for tick in 1:25
         sqrt.(abs.(trichoplax.state.potential/4.0)))
     trichoplax = morph(trichoplax, .0001, 25)
 
-    redraw(trichoplax,cells_handle)
-    potential_remap(trichoplax, ch, 1)
+    redraw(trichoplax,cell_handle)
+  #  potential_remap(trichoplax, ch, 1)
 
     println(tick)
-    display(scene)
+    display(fig)
     sleep(.005)
 end
 
