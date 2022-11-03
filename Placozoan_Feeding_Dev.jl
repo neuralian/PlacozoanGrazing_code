@@ -1,8 +1,6 @@
-# Placozoan_Dev.jl
+# Placozoan feeding (Contact map) demo
 
-# function trichoplax_sim()
-
-# MAIN
+include("Placozoan.jl")
 
 
 bodylayers = 8 # number of body cell layers
@@ -31,8 +29,11 @@ param = trichoplaxparameters(   bodylayers,
 R = bodylayers*celldiameter    # approx radius of Trichoplax (for scene setting)
 D = 3*R  # scene diameter
 limits=FRect(-D/2, -D/2, D, D)
-scene = Scene(resolution = (800,800), scale_plot = false,
-              show_axis = false, limits=limits)
+fig = Figure(resolution = (800,800))
+
+#, scale_plot = false,
+#             show_axis = false, limits=limits)
+ax = Axis(fig[1,1])
 
 # scatter bacteria (point objects) over the scene
 nbacteria = 50
@@ -40,12 +41,12 @@ bactrect = FRect(20,20, 30, 30)
 bacteria = growbacteria(nbacteria, bactrect)
 
 # draw trichoplax cells
-cells_handle = draw(scene, trichoplax, RGB(.25, .25, .25), 1)
+cells_handle = draw(trichoplax, RGB(.25, .25, .25), 1)
 
 # colour the cells
-ch = potentialmap(scene, trichoplax)
+ch = potentialmap(trichoplax)
 
-display(scene)
+display(fig)
 
 restvolume = copy(trichoplax.state.volume)
 i0 = 4

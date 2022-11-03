@@ -11,7 +11,7 @@
 # module Placozoan
 #
 # using Distributions
-using Makie
+using GLMakie
 using Colors
 using ColorSchemes
 
@@ -24,7 +24,7 @@ using ColorSchemes
 #         drawdelaunaydisc, drawcells, drawskeleton, findperimeteredges,
 #         distalskeleton
 
-colormaps = collect(AbstractPlotting.all_gradient_names)
+#colormaps = collect(AbstractPlotting.all_gradient_names)
 
 
 struct Skeleton
@@ -40,7 +40,6 @@ end
 struct Param
     nlayers::Int64
     margin::Int64         # number of layers in gut margin ("brain")
-    range::Float64        # sensory range in body radius units
     k2::Array{Float64,1}  # half of cytoskeleton spring constant (k/2)
     ρ::Array{Float64,1}   # cell pressure constant \rho (energy/volume)
     σ::Array{Float64,1}   # surface energy density
@@ -235,7 +234,6 @@ end
 # utility for constructing parameter struct
 function trichoplaxparameters( nlayers,
                                margin,
-                               range,
                                skeleton_springconstant,
                                cell_pressureconstant,
                                cell_surface_energy_density,
@@ -243,7 +241,6 @@ function trichoplaxparameters( nlayers,
                                dt )
     Param(  nlayers,
             margin,
-            range,
             [skeleton_springconstant/2.0],
             [cell_pressureconstant],
             [cell_surface_energy_density],
@@ -900,17 +897,17 @@ end
 
 
 
-function draw(scene, trichoplax::Trichoplax, color=:black, linewidth = .25)
+function draw(trichoplax::Trichoplax, color=:black, linewidth = .25)
 
     n = size(trichoplax.anatomy.cellvertexindex,1)  # number of cells
     handle = Array{Any,1}(undef, n)  # plot handles for each cell
     @inbounds for i in 1:n
-        lines!(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],1],
+        handle[i] =lines!(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],1],
                trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],2],
                 color = color, linewidth=linewidth, alpha = 0.5)
     end
-    display(scene)
-    [handle[i] = scene[end-i+1] for i in 1:n]
+   # display(scene)
+    #[handle[i] = scene[end-i+1] for i in 1:n]
     return handle
 end
 
@@ -992,7 +989,7 @@ function imagecells( trichoplax::Trichoplax,
     return handle
 end
 
-function potentialmap(scene, trichoplax::Trichoplax, imap::Int64=1)
+function potentialmap(trichoplax::Trichoplax, imap::Int64=1)
     # draw trichoplax with colormapping from potential
     # each hexagonal cell is rendered as 6 triangles radiating from centre
 
@@ -1031,11 +1028,11 @@ function potentialmap(scene, trichoplax::Trichoplax, imap::Int64=1)
         x = trichoplax.state.vertex[iv,:]
         xx = vcat(sum(x, dims=1)/6.0, x)
 
-        poly!(xx, connect, color = color, alpha = .1)
+        handle[i] = poly!(xx, connect, color = color, alpha = .1)
 
     end
-    display(scene)
-    [handle[i] = scene[end-n + i] for i in 1:n]
+    #display(scene)
+    #[handle[i] = scene[end-n + i] for i in 1:n]
     return handle
 end
 
@@ -1304,8 +1301,8 @@ function growbacteria(nbacteria::Int64, limits, color = :red, size = 2)
         x[i,1] = x0 + wide*rand(1)[]
         x[i,2] = y0 + high*rand(1)[]
         p = Point2f0[x[i,:]]
-        scatter!(p,  markersize = size, color = color)
-        handle[i] = scene[end]
+        handle[i] = scatter!(p,  markersize = size, color = color)
+        #handle[i] = scene[end]
     end
     return Bacteria(x, handle, fill(0, nbacteria))
 end
