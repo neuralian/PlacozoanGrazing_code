@@ -3,8 +3,8 @@
 include("Placozoan.jl")
 
 
-bodylayers = 8 # number of body cell layers
-margin = 2  # number of layers in gut margin ("brain")
+bodylayers = 12 # number of body cell layers
+margin = 3  # number of layers in gut margin ("brain")
 celldiameter = 10.0
 skeleton_springconstant= 5.0e-2
 cell_pressureconstant = 1.0e0
@@ -28,7 +28,7 @@ param = trichoplaxparameters(   bodylayers,
 # Draw
 R = bodylayers*celldiameter    # approx radius of Trichoplax (for scene setting)
 D = 3*R  # scene diameter
-limits=FRect(-D/2, -D/2, D, D)
+#limits=FRect(-D/2, -D/2, D, D)
 fig = Figure(resolution = (800,800))
 
 #, scale_plot = false,
@@ -37,14 +37,14 @@ ax = Axis(fig[1,1])
 
 # scatter bacteria (point objects) over the scene
 nbacteria = 50
-bactrect = FRect(20,20, 30, 30)
-bacteria = growbacteria(nbacteria, bactrect)
+#bactrect = FRect(20,20, 30, 30)
+bacteria = growbacteria(nbacteria, [20,20, 30, 30])
 
 # draw trichoplax cells
 cell_handle = draw(trichoplax, RGB(.25, .25, .25), 1)
 
 # colour the cells
-ch = potentialmap(trichoplax)
+potentialmap_handle = potentialmap(trichoplax)
 
 display(fig)
 
@@ -52,10 +52,12 @@ restvolume = copy(trichoplax.state.volume)
 i0 = 4
 i1 = vcat(i0, trichoplax.anatomy.neighbourcell[i0,:])
 
-record(fig, "trichoplaxdev.mp4", 1:100) do tick
+record(fig, "trichoplaxdev.mp4", 1:25) do tick
 #for tick in 1:25
-    global trichoplax
-    global scene
+
+
+   global trichoplax
+  #  global fig
     if tick < 50
         which_bacteriahere = bacteriahere(bacteria, trichoplax)
         for j in 1:trichoplax.anatomy.nstomach
@@ -78,12 +80,14 @@ record(fig, "trichoplaxdev.mp4", 1:100) do tick
     trichoplax = morph(trichoplax, .0001, 25)
 
     redraw(trichoplax,cell_handle)
-  #  potential_remap(trichoplax, ch, 1)
+    potential_remap(trichoplax, potentialmap_handle , 1)
 
     println(tick)
-    display(fig)
+  #  display(fig)
     sleep(.005)
+
 end
+
 
 # end
 

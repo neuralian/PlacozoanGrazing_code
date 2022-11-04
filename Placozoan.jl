@@ -912,13 +912,13 @@ end
 function xyArray2Points(xy)
     # convert nx2 array of x-y coordinates to nx1 vector of points
 
-    [Point2f0(xy[i,1], xy[i,2]) for i in 1:size(xy,1)]
+    [Point2f(xy[i,1], xy[i,2]) for i in 1:size(xy,1)]
 end
 
 function xyzArray2Points(xyz)
     # convert nx3 array of x-y-z coordinates to nx1 vector of points
 
-    [Point3f0(xyz[i,1], xyz[i,2], xyz[i,3]) for i in 1:size(xyz,1)]
+    [Point3f(xyz[i,1], xyz[i,2], xyz[i,3]) for i in 1:size(xyz,1)]
 end
 
 
@@ -991,10 +991,8 @@ function potentialmap(trichoplax::Trichoplax, imap::Int64=1)
     # draw trichoplax with colormapping from potential
     # each hexagonal cell is rendered as 6 triangles radiating from centre
 
-
-   n = size(trichoplax.anatomy.cellvertexindex,1)  # number of cells to colour
-   handle = Array{Any,1}(undef, n)  # plot handle for each cell
-   nuhandle =  Array{Any,1}(undef, n)
+   handle = Array{Any,1}(undef, trichoplax.anatomy.ncells)  # plot handle for each cell
+   #nuhandle =  Array{Any,1}(undef, n)
 
    # colormap choices
     cmap = (ColorSchemes.mint,   #1
@@ -1013,7 +1011,7 @@ function potentialmap(trichoplax::Trichoplax, imap::Int64=1)
                 1  6  7
                 1  7  2]
 
-    for i in 1:n
+    for i in 1:trichoplax.anatomy.ncells
         iv = trichoplax.anatomy.cellvertexindex[i,:]    # cell vertex indices
         colorvalue = [meanvec(
         trichoplax.state.potential[trichoplax.anatomy.vertexcells[iv[j],
@@ -1026,7 +1024,7 @@ function potentialmap(trichoplax::Trichoplax, imap::Int64=1)
         x = trichoplax.state.vertex[iv,:]
         xx = vcat(sum(x, dims=1)/6.0, x)
 
-        handle[i] = poly!(xx, connect, color = color, alpha = .1)
+        handle[i] = poly!(xx, connect, color = color, alpha = .75)
 
     end
     #display(scene)
@@ -1047,20 +1045,16 @@ function potential_remap(trichoplax::Trichoplax, handle, imap::Int64=1)
              )
 
     for i in 1:length(handle)
-        handle[i][1][].vertices[:] =
-        xyzArray2Points(hcat(
-            trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],:],
-            zeros(7,1)))
         iv = trichoplax.anatomy.cellvertexindex[i,:]    # cell vertex indices
         colorvalue = [meanvec(
         trichoplax.state.potential[trichoplax.anatomy.vertexcells[iv[j],
         1:trichoplax.anatomy.n_vertexcells[iv[j]]]])
                         for j in 1:6]
-        color = get(cmap[imap],
-                1.0 .- vcat(colorvalue, trichoplax.state.potential[i]))
 
-                handle[i][:color] = color
-        handle[i][1][] = handle[i][1][]
+        color = get(cmap[imap],
+                1.0 .- vcat(trichoplax.state.potential[i], colorvalue ))
+
+                handle[i][:color] = RGBA.(color, 0.75)
     end
 
 end
@@ -1290,19 +1284,19 @@ function growbacteria(nbacteria::Int64, limits, color = :red, size = 2)
 
     handle = Array{Any, 1}(undef, nbacteria)
     x = fill(0.0, nbacteria,2 )    # array of locations
-    c = decompose(Point2f0, limits)
-    x0 = c[1][1]
-    y0 = c[1][2]
-    wide = c[2][1] - c[1][1]
-    high = c[3][2] - c[1][2]
+    #c = decompose(Point2f0, limits)
+    x0 = limits[1]
+    y0 = limits[2]
+    wide = limits[3] - x0
+    high = limits[4] - y0
     for i in 1:nbacteria
         x[i,1] = x0 + wide*rand(1)[]
         x[i,2] = y0 + high*rand(1)[]
-        p = Point2f0[x[i,:]]
-        handle[i] = scatter!(p,  markersize = size, color = color)
+       # p = Point2f0[x[i,:]]
+        handle[i] = scatter!(x[i,:]...,  markersize = size, color = color)
         #handle[i] = scene[end]
     end
-    return Bacteria(x, handle, fill(0, nbacteria))
+return Bacteria(x, handle, fill(0, nbacteria))
 end
 
 #     ncells = size(cell,1)
