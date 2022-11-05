@@ -52,7 +52,9 @@ struct Anatomy
     #   parent-child and neighbour relationships of trichoplax components
     # e.g. which vertices belong to which cell, etc.
     ncells::Int64              # number of cells
+    handle::Vector{Any}         # plot handles for cells
     layercount::Array{Int64,1}  # number of cells in each layer
+    restvolume::Array{Float64,1} 
     nstomach::Int64            # number of stomach cells (1:stomach)
     triangle::Array{Int64,2}   # skeleton Delaunay triangles
     skintriangle::Array{Int64,2} # triangles for skin vertices
@@ -158,7 +160,10 @@ function Trichoplax(param)
 
   skin_neighbour = skinneighboursofskinvertices(neighbourvertex, skin)
 
+  # set rest (target) volume of every cell 
+  # to the volume of cell 1 (centre cell) at construction
   volume = ones(size(cell,1))*cellvolume(vertex, cell)[1]
+  restvolume = copy(volume)
 
   potential = zeros(size(cell,1))
   calcium = zeros(size(cell,1))
@@ -166,11 +171,11 @@ function Trichoplax(param)
   nstomach = sum(skeleton.layercount[1:(param.nlayers-param.margin)])
 
   gutboundaryvertexindex =
-        getgutboundaryvertexindex(cell, vertex, layercount, margin)
+        getgutboundaryvertexindex(cell, vertex, layercount, param.margin)
 
   gutboundaryvertex = vertex[gutboundaryvertexindex[:], :]
 
-
+  cellPlotHandle = Vector{Any}(undef, ncells)  # dummy 
 
   # move centre of cell 1 to (0,0)
   n = size(vertex,1)
@@ -198,7 +203,9 @@ function Trichoplax(param)
                     volume       )
 
   anatomy = Anatomy(  ncells,
+                      cellPlotHandle,
                       layercount,
+                      restvolume,
                       nstomach,
                       triangle,
                       skintriangle,
@@ -217,7 +224,7 @@ function Trichoplax(param)
                       skin_neighbour   )
 
 
-   trichoplax = Trichoplax(  param, anatomy, observer, state )
+   trichoplax = Trichoplax(  param, anatomy, observer, state)
 
     # reshape by minimizing energy
     # = spring energy in cytoskeleton + cell turgor pressure + surface energy
@@ -906,7 +913,8 @@ function draw(trichoplax::Trichoplax, color=:black, linewidth = .25)
                trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],2],
                 color = color, linewidth=linewidth, alpha = 0.5)
     end
-    return handle
+    trichoplax.anatomy.handle[:] = copy(handle)
+   # return handle
 end
 
 function xyArray2Points(xy)
@@ -922,12 +930,12 @@ function xyzArray2Points(xyz)
 end
 
 
-function redraw(trichoplax::Trichoplax, cell_handle)
+function redraw(trichoplax::Trichoplax)
     # update cell vertices in plot
     # using handle returned by draw
 
-    for i in 1:length(cell_handle) # for each cell
-        cell_handle[i][1][] =
+    for i in 1:length(trichoplax.anatomy.handle) # for each cell
+        trichoplax.anatomy.handle[i][1][] =
         xyArray2Points(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],:])
     end
 end
@@ -1298,6 +1306,36 @@ function growbacteria(nbacteria::Int64, limits, color = :red, size = 2)
     end
 return Bacteria(x, handle, fill(0, nbacteria))
 end
+
+
+function state_update!(trichoplax::Trichoplax, bacteria::Bacteria, tick::Int)
+
+    if tick < 50
+        which_bacteriahere = bacteriahere(bacteria, trichoplax)
+        for j in 1:trichoplax.anatomy.nstomach
+            for k in 1:length(which_bacteriahere[j])
+                trichoplax.state.potential[j] = trichoplax.state.potential[j] -
+                        1.0/(bacteria.deadticks[which_bacteriahere[j][k]] .+ 1)
+                bacteria.deadticks[which_bacteriahere[j][k]] =
+                      bacteria.deadticks[which_bacteriahere[j][k]] .+ 1
+            end
+        end
+    end
+
+
+    trichoplax = diffusepotential(trichoplax,600)
+
+    trichoplax.state.volume[:] =
+        trichoplax.anatomy.restvolume.*(1.0 .-
+        sign.(trichoplax.state.potential).*
+        sqrt.(abs.(trichoplax.state.potential/4.0)))
+    trichoplax = morph(trichoplax, .001, 25)
+
+    #redraw(trichoplax,cell_handle)
+   # potential_remap(trichoplax, potentialmap_handle , 1)
+
+end
+
 
 #     ncells = size(cell,1)
 #
