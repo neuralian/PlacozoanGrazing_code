@@ -164,6 +164,7 @@ function Trichoplax(param)
   # to the volume of cell 1 (centre cell) at construction
   volume = ones(size(cell,1))*cellvolume(vertex, cell)[1]
   restvolume = copy(volume)
+  restvolume = restvolume.*(0.5 .+ rand(ncells))
 
   potential = zeros(size(cell,1))
   calcium = zeros(size(cell,1))
@@ -228,7 +229,7 @@ function Trichoplax(param)
 
     # reshape by minimizing energy
     # = spring energy in cytoskeleton + cell turgor pressure + surface energy
-    trichoplax = morph(trichoplax, .001, 500)
+    trichoplax = morph(trichoplax, .0025, 800)
 
     # re-set anatomical parameters so that the animal is in
     # its minimum energy state at rest

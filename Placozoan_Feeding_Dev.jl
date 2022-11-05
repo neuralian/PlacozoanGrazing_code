@@ -4,8 +4,8 @@ include("Placozoan.jl")
 
 # function itsalive()
 
-bodylayers = 8 # number of body cell layers
-margin = 2  # number of layers in gut margin ("brain")
+bodylayers = 12 # number of body cell layers
+margin =3  # number of layers in gut margin ("brain")
 celldiameter = 10.0
 skeleton_springconstant= 5.0e-2
 cell_pressureconstant = 1.0e0
@@ -49,10 +49,10 @@ draw(trichoplax[], RGB(.25, .25, .25), 1)
 display(fig)
 
 
-i0 = 4
-i1 = vcat(i0, trichoplax[].anatomy.neighbourcell[i0,:])
+# i0 = 4
+# i1 = vcat(i0, trichoplax[].anatomy.neighbourcell[i0,:])
 
-record(fig, "trichoplaxdev.mp4", 1:100) do tick
+record(fig, "trichoplaxdev.mp4", 1:25) do tick
 #for tick in 1:25
 
    # global trichoplax[]
