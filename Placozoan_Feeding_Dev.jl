@@ -5,12 +5,14 @@ include("Placozoan.jl")
 # function itsalive()
 
 bodylayers = 12 # number of body cell layers
-margin =3  # number of layers in gut margin ("brain")
-celldiameter = 10.0
+margin =3 # number of layers in gut margin ("brain")
+celldiameter = 8.0
 skeleton_springconstant= 5.0e-2
 cell_pressureconstant = 1.0e0
 cell_surface_energy_density  = 5.0e1
 dt = .001
+
+WorldSize = 400
 
 param = trichoplaxparameters(   bodylayers,
                                 margin,
@@ -30,11 +32,15 @@ param = trichoplaxparameters(   bodylayers,
 R = bodylayers*celldiameter    # approx radius of Trichoplax (for scene setting)
 D = 3*R  # scene diameter
 #limits=FRect(-D/2, -D/2, D, D)
-fig = Figure(resolution = (800,800))
+fig = Figure(resolution = (1200,1200))
 
 #, scale_plot = false,
 #             show_axis = false, limits=limits)
 ax = Axis(fig[1,1])
+xlims!(ax, 0.5*WorldSize.*[-1,1])
+ylims!(ax,0.5*WorldSize.*[-1,1])
+
+
 
 # scatter bacteria (point objects) over the scene
 nbacteria = 50
@@ -52,7 +58,7 @@ display(fig)
 # i0 = 4
 # i1 = vcat(i0, trichoplax[].anatomy.neighbourcell[i0,:])
 
-record(fig, "trichoplaxdev.mp4", 1:25) do tick
+record(fig, "trichoplaxdev.mp4", 1:100) do tick
 #for tick in 1:25
 
    # global trichoplax[]

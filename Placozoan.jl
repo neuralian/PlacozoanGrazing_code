@@ -910,9 +910,12 @@ function draw(trichoplax::Trichoplax, color=:black, linewidth = .25)
     n = size(trichoplax.anatomy.cellvertexindex,1)  # number of cells
     handle = Array{Any,1}(undef, n)  # plot handles for each cell
     @inbounds for i in 1:n
-        handle[i] =lines!(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],1],
-               trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],2],
-                color = color, linewidth=linewidth, alpha = 0.5)
+        # handle[i] =lines!(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],1],
+        #        trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],2],
+        #         color = color, linewidth=linewidth, alpha = 0.5)
+
+        handle[i] =poly!(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,:], :],
+                 color = RGBA(rand(), rand(), rand(), .25), strokewidth=1.0)
     end
     trichoplax.anatomy.handle[:] = copy(handle)
    # return handle
@@ -922,6 +925,13 @@ function xyArray2Points(xy)
     # convert nx2 array of x-y coordinates to nx1 vector of points
 
     [Point2f(xy[i,1], xy[i,2]) for i in 1:size(xy,1)]
+end
+
+# convert 2D xy coordinate array to vector of Point3 
+function xyCoords2Point3(xy)
+
+    [Point3f(vcat(xy[i,:],0.0)) for i in 1:size(xy,1)]
+
 end
 
 function xyzArray2Points(xyz)
@@ -937,7 +947,7 @@ function redraw(trichoplax::Trichoplax)
 
     for i in 1:length(trichoplax.anatomy.handle) # for each cell
         trichoplax.anatomy.handle[i][1][] =
-        xyArray2Points(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,[1:6; 1]],:])
+       [xyCoords2Point3(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,:], :])]
     end
 end
 
