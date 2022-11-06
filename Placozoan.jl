@@ -1,4 +1,4 @@
-# Placozoan.jl Package/module
+# Placozoan.jl Package/modulemorph
 #  To make the package available:
 #   At REPL prompt: julia> push!(LOAD_PATH, <path_to_package_folder>)
 # In Juno:
@@ -80,7 +80,7 @@ struct State
     vertex::Array{Float64,2}   # cell vertex coords in Body frame
     potential::Array{Float64,1}   # membrane potential per cell
     calcium::Array{Float64,1}     # [calcium] per cell
-    colour::Array{RGBA{Float64},2}
+    colour::Array{RGBA{Float64},1}
     edgelength::Array{Float64,1}  # edge rest lengths
     volume::Array{Float64,1}   # volume (area) of each cell
 end
@@ -192,7 +192,8 @@ function Trichoplax(param)
   # observer
   observer = Observer((nstomach+1):ncells)
 
-  initcolour = fill(RGBA(0.25, 0.25, 0.85, 0.5), ncells, 1 )
+  # cells random initial colours
+  initcolour = [RGBA([.5+rand()/5.0, .5+rand()/5.0, 0.0]..., .25) for i in 1:ncells]
 
   state = State(    x0,
                     θ,
@@ -229,7 +230,7 @@ function Trichoplax(param)
 
     # reshape by minimizing energy
     # = spring energy in cytoskeleton + cell turgor pressure + surface energy
-    trichoplax = morph(trichoplax, .0025, 800)
+    trichoplax = morph(trichoplax, .001, 1000)
 
     # re-set anatomical parameters so that the animal is in
     # its minimum energy state at rest
@@ -260,7 +261,8 @@ end
 function skeletonlayercount(n_cell_layers)
     # number of vertices in each skeleton layer given number of cell layers
 
-   return vcat([1], [6*i for i in 1:n_cell_layers])
+c = vcat([1], [6*i for i in 1:n_cell_layers])
+   return c #-1+rand(1:3)
 end
 
 function skeletonvertices(layercount, edgelength)
@@ -272,9 +274,10 @@ function skeletonvertices(layercount, edgelength)
     i = 1                         # initial vertex index
     for j in 2:nlayers            # for each layer
         r = (sqrt(3)/2)*(j-1)*edgelength      # base radius
+       # ϕ = rand([-.25,0.0,.25])                 # random rotation per layer
         for k in 1:layercount[j]  # for each vertex in layer
             i = i + 1
-            θ = 2π*(k-1)/layercount[j]
+            θ = 2π*(k-1)/layercount[j] #+ ϕ  
             vertex[i,:] = r*[cos(θ) sin(θ)]
         end
     end
@@ -915,7 +918,7 @@ function draw(trichoplax::Trichoplax, color=:black, linewidth = .25)
         #         color = color, linewidth=linewidth, alpha = 0.5)
 
         handle[i] =poly!(trichoplax.state.vertex[trichoplax.anatomy.cellvertexindex[i,:], :],
-                 color = RGBA(rand(), rand(), rand(), .25), strokewidth=1.0)
+                 color = trichoplax.state.colour[i], strokecolor = RGB(.8, .8, .8), strokewidth=1.0)
     end
     trichoplax.anatomy.handle[:] = copy(handle)
    # return handle

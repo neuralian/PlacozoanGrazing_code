@@ -4,12 +4,12 @@ include("Placozoan.jl")
 
 # function itsalive()
 
-bodylayers = 12 # number of body cell layers
-margin =3 # number of layers in gut margin ("brain")
+bodylayers = 16 # number of body cell layers
+margin =3# number of layers in gut margin ("brain")
 celldiameter = 8.0
-skeleton_springconstant= 5.0e-2
+skeleton_springconstant= 2.0e-1 # 5.0e-2
 cell_pressureconstant = 1.0e0
-cell_surface_energy_density  = 5.0e1
+cell_surface_energy_density  = 1.0e1 # 5.0e1
 dt = .001
 
 WorldSize = 400
@@ -45,7 +45,7 @@ ylims!(ax,0.5*WorldSize.*[-1,1])
 # scatter bacteria (point objects) over the scene
 nbacteria = 50
 #bactrect = FRect(20,20, 30, 30)
-bacteria = growbacteria(nbacteria, [20,20, 30, 30])
+bacteria = growbacteria(nbacteria, [50,50, 70, 70])
 
 draw(trichoplax[], RGB(.25, .25, .25), 1)
 
